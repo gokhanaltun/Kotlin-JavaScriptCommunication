@@ -1,8 +1,9 @@
 package com.gkhn.kotlinandjscommunication
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
+import android.view.View
+import android.webkit.JavascriptInterface
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -22,18 +23,39 @@ class MainActivity : AppCompatActivity() {
             webViewClient = WebViewClient()
             settings.javaScriptEnabled = true
             settings.builtInZoomControls = true
-            addJavascriptInterface(JavascriptInterface(this@MainActivity), "inter")
-            loadUrl("file:///android_asset/tr-map.html")
+            settings.displayZoomControls = false
+            addJavascriptInterface(this@MainActivity, "Android")
+            loadUrl("file:///android_asset/html/index.html")
+        }
+
+        binding.btnSubmit.setOnClickListener {
+            val data = binding.edtMain.text.toString()
+            binding.webview.evaluateJavascript("onSubmit('${data}')", null)
         }
     }
 
-}
-
-class JavascriptInterface(var context: Context){
-
-    @android.webkit.JavascriptInterface
-    fun showToast(text: String){
-        Toast.makeText(this.context, text, Toast.LENGTH_SHORT).show()
+    override fun onBackPressed() {
+        if (binding.webview.canGoBack()) {
+            binding.webview.goBack()
+            binding.containerMain.visibility = View.VISIBLE
+        } else {
+            super.onBackPressed()
+        }
     }
 
+    //Javascript Interface Methods
+    @JavascriptInterface
+    fun showToast(text: String) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+    }
+
+    @JavascriptInterface
+    fun submitToActivity(text: String) {
+        binding.edtMain.setText(text)
+    }
+
+    @JavascriptInterface
+    fun changePage() {
+        binding.containerMain.visibility = View.GONE
+    }
 }
